@@ -13,85 +13,148 @@
 <title>Mercati</title>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
-:root{--bg:#131722;--card:#1c2030;--line:#2a2e39;--txt:#e0e3eb;--mut:#8b90a0;--up:#26a69a;--down:#ef5350;--acc:#42a5f5;--warn:#f5b942}
+:root{
+  --bg:#0f131c;--surface:#171c27;--surface2:#1e2431;--line:#262d3b;--line2:#323a4b;
+  --txt:#e8eaf0;--txt2:#a3a9b8;--mut:#6f7686;
+  --up:#26a69a;--down:#ef5350;--acc:#42a5f5;--warn:#f0b44c;
+  --upbg:rgba(38,166,154,.14);--downbg:rgba(239,83,80,.14);--accbg:rgba(66,165,245,.14);--warnbg:rgba(240,180,76,.14);
+  --r:16px;
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
-body{padding-top:env(safe-area-inset-top);min-height:100vh}
-header{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 16px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
-header h1{font-size:22px;margin:0;font-weight:700}
-.icon-btn{background:none;border:0;color:var(--mut);font-size:20px;padding:6px}
-main{padding:12px 12px calc(84px + env(safe-area-inset-bottom))}
-nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:rgba(19,23,34,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;background:none;border:0;color:var(--mut);padding:8px 0 6px;font-size:10.5px;display:flex;flex-direction:column;align-items:center;gap:2px}
-nav button span{font-size:21px;line-height:1}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overscroll-behavior-y:none}
+button{font:inherit;color:inherit;cursor:pointer}
+svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.s{width:17px;height:17px}
+
+/* header */
+header{position:sticky;top:0;z-index:5;background:rgba(15,19,28,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:calc(env(safe-area-inset-top) + 10px) 18px 12px;display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid transparent;transition:border-color .2s}
+header.scrolled{border-bottom-color:var(--line)}
+header h1{font-size:28px;line-height:1.1;margin:0;font-weight:700;letter-spacing:-.02em}
+header .sub{margin-top:3px}
+.hbtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--txt2);display:grid;place-items:center}
+.hbtn:active{transform:scale(.95)}
+.spin svg{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+
+main{padding:6px 16px calc(96px + env(safe-area-inset-bottom))}
+
+/* tab bar */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:rgba(15,19,28,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:6px 4px calc(4px + env(safe-area-inset-bottom))}
+nav button{flex:1;background:none;border:0;color:var(--mut);padding:5px 0 3px;font-size:10.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.01em}
 nav button.on{color:var(--acc)}
-.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px}
-.row{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line)}
+
+/* building blocks */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
+.row.tap:active{background:var(--surface2)}
 .grow{flex:1;min-width:0}
-.name{font-weight:600}
+.name{font-weight:600;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sub{color:var(--mut);font-size:12.5px}
-.num{font-variant-numeric:tabular-nums;text-align:right}
-.up{color:var(--up)}.down{color:var(--down)}
-.pill{display:inline-block;min-width:68px;text-align:center;border-radius:7px;padding:3px 6px;font-weight:600;font-size:13px;color:#fff}
-.pill.up{background:var(--up);color:#fff}.pill.down{background:var(--down);color:#fff}.pill.flat{background:#3a3f4d}
-h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:18px 4px 8px;font-weight:600}
-.big{font-size:28px;font-weight:700}
-.seg{display:flex;background:var(--card);border-radius:10px;padding:3px;gap:3px;margin:10px 0}
-.seg button{flex:1;border:0;background:none;color:var(--mut);padding:7px 0;border-radius:8px;font-weight:600;font-size:13px}
-.seg button.on{background:#2f3547;color:var(--txt)}
-#chart{height:320px;border-radius:12px;overflow:hidden}
-.muted{color:var(--mut)}
-.center{text-align:center;padding:40px 10px;color:var(--mut)}
-.btn{display:block;width:100%;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600;background:var(--acc);color:#fff;margin-top:10px}
-.btn.ghost{background:var(--card);color:var(--txt)}
-input,textarea{width:100%;background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:13px;font-size:17px;font-family:inherit}
-textarea{resize:none;min-height:48px}
-.ev{display:flex;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--txt2)}
+.chg{display:inline-block;min-width:64px;text-align:center;border-radius:8px;padding:3px 7px;font-weight:650;font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:3px}
+.chg.up{background:var(--upbg)}.chg.down{background:var(--downbg)}.chg.flat{background:var(--surface2)}
+.avatar{width:38px;height:38px;border-radius:11px;background:var(--surface2);border:1px solid var(--line2);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--txt2);letter-spacing:.02em;flex:none}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:20px 2px 8px}
+.sec h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0;font-weight:650}
+.sec .sub{font-size:12px}
+.big{font-size:32px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.label{font-size:12px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:1px}
+.dot.live{background:var(--up);box-shadow:0 0 0 3px var(--upbg)}.dot.off{background:var(--mut)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:650;border-radius:7px;padding:3px 8px;background:var(--surface2);color:var(--txt2);white-space:nowrap}
+.badge.up{background:var(--upbg);color:#4fd1c1}.badge.down{background:var(--downbg);color:#ff7d7a}.badge.warn{background:var(--warnbg);color:var(--warn)}.badge.acc{background:var(--accbg);color:#7cc2ff}
+.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px;margin:14px 0}
+.seg button{flex:1;border:0;background:none;color:var(--mut);padding:8px 0;border-radius:9px;font-weight:650;font-size:13px}
+.seg button.on{background:var(--surface2);color:var(--txt);box-shadow:0 1px 0 var(--line2) inset}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:650;background:var(--acc);color:#fff;margin-top:12px}
+.btn:active{opacity:.85}
+.btn.ghost{background:var(--surface);border:1px solid var(--line);color:var(--txt)}
+.note{font-size:12.5px;color:var(--mut);margin:8px 2px 0;line-height:1.5}
+.err{background:var(--downbg);color:#ffb4b4;border-radius:12px;padding:13px;margin:10px 0}
+.empty{text-align:center;color:var(--mut);padding:36px 16px}
+.empty svg{width:34px;height:34px;color:var(--line2);margin-bottom:8px}
+input,textarea{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:14px;padding:14px;font-size:17px;font-family:inherit;outline:none}
+input:focus,textarea:focus{border-color:var(--acc)}
+.chips{display:flex;gap:7px;overflow-x:auto;margin:4px -16px 6px;padding:2px 16px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;background:var(--surface);border:1px solid var(--line);color:var(--txt2);border-radius:20px;padding:7px 13px;font-size:13.5px;font-weight:600}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+
+/* skeleton */
+.sk{background:linear-gradient(90deg,var(--surface) 0%,var(--surface2) 50%,var(--surface) 100%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:var(--r);margin-bottom:12px}
+@keyframes sh{to{background-position:-200% 0}}
+
+/* detail sheet */
+.sheet{position:fixed;inset:0;z-index:10;background:var(--bg);overflow-y:auto;display:none;padding:0 16px calc(28px + env(safe-area-inset-bottom))}
+.sheet.open{display:block;animation:up .22s ease}
+@keyframes up{from{transform:translateY(16px);opacity:0}}
+.sbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;margin:0 -16px;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;background:rgba(15,19,28,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.sbar .t{flex:1;text-align:center;font-weight:650;font-size:16px;margin-right:38px}
+.back{background:none;border:0;color:var(--acc);display:flex;align-items:center;padding:6px;font-size:16px}
+#chart{height:330px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 2px 0;font-size:12.5px;color:var(--txt2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.lg-line{width:16px;height:2px;background:var(--acc);border-radius:2px}
+.lg-arrow{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--warn)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 13px}
+.stat .v{font-weight:650;font-variant-numeric:tabular-nums;margin-top:2px}
+.range{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line)}
+.range:last-child{border-bottom:0}
+
+/* calendar */
+.ev{display:flex;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line);position:relative}
 .ev:last-child{border-bottom:0}
-.time{width:46px;color:var(--mut);font-variant-numeric:tabular-nums;font-size:13px;padding-top:1px}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px}
-.high{background:var(--down)}.medium{background:#f39c3d}.low{background:var(--warn)}
-.news a{color:var(--txt);text-decoration:none;display:block;padding:10px 4px;border-bottom:1px solid var(--line)}
-.news a:last-child{border-bottom:0}
-.msg{border-radius:14px;padding:11px 13px;margin:8px 0;max-width:92%;white-space:normal}
-.msg.me{background:var(--acc);color:#fff;margin-left:auto}
-.msg.ai{background:var(--card)}
+.ev .bar{width:3px;border-radius:3px;align-self:stretch;flex:none}
+.bar.high{background:var(--down)}.bar.medium{background:var(--warn)}.bar.low{background:var(--line2)}
+.ev .time{width:44px;font-variant-numeric:tabular-nums;color:var(--txt2);font-weight:600;font-size:14px;flex:none}
+.vals{display:flex;gap:14px;margin-top:6px}
+.vals div{font-size:12px;color:var(--mut)}.vals b{display:block;color:var(--txt);font-size:13.5px;font-weight:650;font-variant-numeric:tabular-nums}
+.ev.past{opacity:.55}
+
+/* news */
+.ncard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px;margin-bottom:10px}
+.nmeta{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;color:var(--mut)}
+.ntitle{display:block;color:var(--txt);text-decoration:none;font-size:16.5px;font-weight:650;line-height:1.32;letter-spacing:-.005em}
+.why{margin-top:8px;color:var(--txt2);font-size:14px;line-height:1.45}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.nfoot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+.link{background:none;border:0;color:var(--acc);font-weight:650;font-size:14px;display:inline-flex;align-items:center;gap:5px;padding:0;text-decoration:none}
+.hl a{display:block;color:var(--txt);text-decoration:none;padding:12px 14px;border-bottom:1px solid var(--line);font-size:14.5px}
+.hl a:last-child{border-bottom:0}
+
+/* chat */
+.msg{border-radius:18px;padding:11px 14px;margin:8px 0;max-width:88%;line-height:1.5}
+.msg.me{background:var(--acc);color:#fff;margin-left:auto;border-bottom-right-radius:6px}
+.msg.ai{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:6px}
 .msg ul{margin:6px 0;padding-left:18px}
-.sheet{position:fixed;inset:0;z-index:10;background:var(--bg);overflow-y:auto;padding:calc(env(safe-area-inset-top) + 6px) 12px calc(24px + env(safe-area-inset-bottom));display:none}
-.sheet.open{display:block}
-.back{background:none;border:0;color:var(--acc);font-size:16px;padding:8px 0}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.chip{background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:16px;padding:6px 11px;font-size:13px}
-.note{font-size:12.5px;color:var(--mut);margin-top:8px}
-.err{background:#3b1f24;color:#ffb4b4;border-radius:12px;padding:12px;margin-bottom:12px}
-.spark{width:70px;height:28px}
-.chips.scroll{flex-wrap:nowrap;overflow-x:auto;margin:0 -12px 4px;padding:2px 12px 6px;scrollbar-width:none}.chips.scroll::-webkit-scrollbar{display:none}
-.chip{white-space:nowrap}.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.ncard{background:var(--card);border-radius:14px;padding:13px 14px;margin-bottom:10px}
-.nhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.imp{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-radius:6px;padding:2px 7px}
-.imp.high{background:#5a1f25;color:#ff8a8a}.imp.medium{background:#4a3517;color:#ffc46b}.imp.low{background:#2a2e39;color:var(--mut)}
-.ntitle{display:block;color:var(--txt);text-decoration:none;font-size:16.5px;font-weight:650;line-height:1.3}
-.why{margin-top:7px;color:#c5c9d6;font-size:14px}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-.tag{font-size:12.5px;font-weight:600;border-radius:7px;padding:3px 8px;background:#2a2e39}
-.tag.up{background:rgba(38,166,154,.18);color:#4fd1c1}.tag.down{background:rgba(239,83,80,.18);color:#ff7d7a}
-.nfoot{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-.mini{background:#2f3547;border:0;color:var(--txt);border-radius:9px;padding:6px 10px;font-size:13px;font-weight:600}
-.typing{display:inline-block;animation:blink 1s infinite}@keyframes blink{50%{opacity:.3}}
+.composer{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));z-index:5;display:flex;gap:8px;padding:10px 16px;background:rgba(15,19,28,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+.composer textarea{min-height:46px;max-height:120px;padding:12px 14px;border-radius:23px;font-size:16px;resize:none}
+.send{width:46px;height:46px;border-radius:50%;border:0;background:var(--acc);color:#fff;display:grid;place-items:center;flex:none}
+.typing span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--mut);margin-right:4px;animation:bl 1s infinite}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}@keyframes bl{50%{opacity:.25}}
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:26px 10px 8px;color:var(--txt2)}
+.hero .ic{width:52px;height:52px;border-radius:16px;background:var(--accbg);color:var(--acc);display:grid;place-items:center;margin-bottom:12px}
+.sugg{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.sugg button{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;color:var(--txt);font-size:14.5px;display:flex;justify-content:space-between;align-items:center}
+
+/* login */
+.login{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px 22px calc(40px + env(safe-area-inset-bottom))}
+.login img{width:64px;height:64px;border-radius:16px;margin-bottom:18px}
+.login h1{font-size:28px;margin:0 0 6px;letter-spacing:-.02em}
+.login input{text-align:center;letter-spacing:.18em;font-weight:650;font-size:20px;margin-top:22px;text-transform:uppercase}
+.steps{margin-top:18px;color:var(--txt2);font-size:14px}
+.steps div{display:flex;gap:10px;margin:8px 0}
+.steps b{width:22px;height:22px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-size:12px;flex:none}
 </style>
 </head>
 <body>
-<header><h1 id="title">Mercati</h1><button class="icon-btn" id="refresh" aria-label="Aggiorna">↻</button></header>
+<header id="hdr"><div><h1 id="title">Mercati</h1><div class="sub" id="hsub"></div></div><button class="hbtn" id="refresh" aria-label="Aggiorna"></button></header>
 <main id="view"></main>
-<nav id="nav">
-  <button data-tab="markets" class="on"><span>📈</span>Mercati</button>
-  <button data-tab="calendar"><span>📅</span>Calendario</button>
-  <button data-tab="crypto"><span>🪙</span>Crypto</button>
-  <button data-tab="news"><span>📰</span>Notizie</button>
-  <button data-tab="ai"><span>🤖</span>Chiedi</button>
-</nav>
+<nav id="nav"></nav>
 <div class="sheet" id="sheet"></div>
 
 <script>
@@ -99,9 +162,28 @@ const API = "https://oxadeaybjxpbxczxqckm.supabase.co/functions/v1/telegram-bot?
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const nf = (v, d) => v == null || isNaN(v) ? "–" : Number(v).toLocaleString("it-IT", { minimumFractionDigits: d ?? (Math.abs(v) < 20 ? 4 : 2), maximumFractionDigits: d ?? (Math.abs(v) < 20 ? 4 : 2) });
-const pct = (v) => v == null ? "–" : `${v >= 0 ? "+" : ""}${nf(v, 2)}%`;
-const cls = (v) => v == null ? "flat" : v >= 0 ? "up" : "down";
+const pct = (v) => v == null || isNaN(v) ? "–" : `${v >= 0 ? "+" : ""}${nf(v, 2)}%`;
+const cls = (v) => v == null || isNaN(v) ? "flat" : v >= 0 ? "up" : "down";
 const tRome = (t, o) => new Intl.DateTimeFormat("it-IT", { timeZone: "Europe/Rome", ...o }).format(new Date(t));
+const hm = (t) => tRome(t, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// ---------- icons ----------
+const P = {
+  markets: '<path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  crypto: '<circle cx="12" cy="12" r="8.5"/><path d="M9.5 8h4a2 2 0 010 4h-4zM9.5 12h4.5a2 2 0 010 4H9.5zM9.5 8v8M11 6.5V8M11 16v1.5"/>',
+  news: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+  ai: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18.5 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',
+  refresh: '<path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 5v6h-6"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  chev: '<path d="M9 5l7 7-7 7"/>',
+  ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h4"/>',
+  send: '<path d="M12 19V5M5 12l7-7 7 7"/>',
+  wallet: '<rect x="3.5" y="6" width="17" height="13" rx="3"/><path d="M16 12.5h2M3.5 9.5h17"/>',
+  info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/>',
+};
+const ic = (n, c = "") => `<svg class="i ${c}" viewBox="0 0 24 24">${P[n]}</svg>`;
 
 // ---------- access code ----------
 let KEY = localStorage.getItem("key") || "";
@@ -115,103 +197,140 @@ async function api(a, params = {}, body) {
     headers: { "x-app-key": KEY, ...(body ? { "content-type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const j = await r.json().catch(() => ({ error: "risposta non valida" }));
-  if (r.status === 401) { localStorage.removeItem("key"); KEY = ""; login("Codice non valido o scaduto: chiedine uno nuovo con /app nel bot."); throw new Error("401"); }
-  if (!r.ok) throw new Error(j.error || `errore ${r.status}`);
+  const j = await r.json().catch(() => ({ error: "Risposta non valida" }));
+  if (r.status === 401) { localStorage.removeItem("key"); KEY = ""; login("Codice non valido o scaduto. Scrivi /app al bot per averne uno nuovo."); throw new Error("401"); }
+  if (!r.ok) throw new Error(j.error || `Errore ${r.status}`);
   return j;
 }
 
 function login(msg) {
-  $("#nav").style.display = "none"; $("#refresh").style.display = "none"; $("#title").textContent = "Mercati";
-  $("#view").innerHTML = `
-    <div class="card" style="margin-top:30px">
-      <div class="big" style="font-size:22px">Accedi</div>
-      <p class="muted">Scrivi <b>/app</b> al bot su Telegram e inserisci qui il codice che ti manda.</p>
-      ${msg ? `<div class="err">${esc(msg)}</div>` : ""}
-      <input id="code" placeholder="ABCDE-12345" autocapitalize="characters" autocomplete="one-time-code" maxlength="11">
-      <button class="btn" id="go">Entra</button>
-    </div>`;
+  $("#hdr").style.display = "none"; $("#nav").style.display = "none";
+  $("#view").innerHTML = `<div class="login">
+    <img src="apple-touch-icon.png" alt="">
+    <h1>Benvenuto</h1>
+    <div class="sub" style="font-size:15px">Inserisci il codice di accesso personale.</div>
+    ${msg ? `<div class="err">${esc(msg)}</div>` : ""}
+    <input id="code" placeholder="ABCDE-12345" autocapitalize="characters" autocomplete="one-time-code" maxlength="11">
+    <button class="btn" id="go">Entra</button>
+    <div class="steps"><div><b>1</b>Apri il bot su Telegram</div><div><b>2</b>Scrivi <span style="color:var(--txt)">/app</span></div><div><b>3</b>Copia qui il codice che ricevi</div></div>
+  </div>`;
   $("#go").onclick = async () => {
     const c = $("#code").value.trim().toUpperCase().replace(/\s/g, "");
-    const norm = /^[A-Z0-9]{10}$/.test(c) ? `${c.slice(0, 5)}-${c.slice(5)}` : c;
-    KEY = norm; localStorage.setItem("key", norm);
+    KEY = /^[A-Z0-9]{10}$/.test(c) ? `${c.slice(0, 5)}-${c.slice(5)}` : c;
+    localStorage.setItem("key", KEY);
+    $("#go").textContent = "Verifico…";
     try { await api("me"); start(); } catch (e) { if (e.message !== "401") login(e.message); }
   };
 }
 
-// ---------- tabs ----------
-let TAB = "markets";
-const TITLES = { markets: "Mercati", calendar: "Calendario", crypto: "Crypto", news: "Notizie", ai: "Chiedi all'AI" };
-document.querySelectorAll("#nav button").forEach((b) => b.onclick = () => show(b.dataset.tab));
+// ---------- shell ----------
+const TABS = [["markets", "Mercati"], ["calendar", "Calendario"], ["crypto", "Crypto"], ["news", "Notizie"], ["ai", "Chiedi"]];
+const TITLES = { markets: "Mercati", calendar: "Calendario", crypto: "Crypto", news: "Notizie", ai: "Assistente" };
+$("#nav").innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}">${ic(k)}${l}</button>`).join("");
+document.querySelectorAll("#nav button").forEach((b) => b.onclick = () => { if (TAB === b.dataset.tab) window.scrollTo({ top: 0, behavior: "smooth" }); show(b.dataset.tab); });
+$("#refresh").innerHTML = ic("refresh", "s");
 $("#refresh").onclick = () => show(TAB);
+window.addEventListener("scroll", () => $("#hdr").classList.toggle("scrolled", scrollY > 4), { passive: true });
+
+let TAB = "markets";
 function show(tab) {
   TAB = tab;
   document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
   $("#title").textContent = TITLES[tab];
+  $("#hsub").innerHTML = `<span class="sub">${cap(tRome(Date.now(), { weekday: "long", day: "numeric", month: "long" }))}</span>`;
+  $("#refresh").style.visibility = tab === "ai" ? "hidden" : "visible";
   ({ markets, calendar, crypto: cryptoTab, news, ai })[tab]();
 }
-const loading = () => $("#view").innerHTML = `<div class="center">Carico…</div>`;
-const fail = (e) => { if (e.message !== "401") $("#view").innerHTML = `<div class="err">${esc(e.message)}</div><button class="btn ghost" onclick="show(TAB)">Riprova</button>`; };
+const busy = (on) => $("#refresh").classList.toggle("spin", on);
+const skeleton = (n = 4, h = 64) => { busy(true); $("#view").innerHTML = Array.from({ length: n }, (_, i) => `<div class="sk" style="height:${i === 0 ? h * 1.8 : h}px"></div>`).join(""); };
+const done = (html) => { busy(false); $("#view").innerHTML = html; };
+const fail = (e) => { busy(false); if (e.message !== "401") $("#view").innerHTML = `<div class="err">${esc(e.message)}</div><button class="btn ghost" onclick="show(TAB)">Riprova</button>`; };
+const stamp = () => `<span class="sub">Aggiornato alle ${hm(Date.now())}</span>`;
 
 function spark(vals, up) {
   if (!vals || vals.length < 2) return "";
-  const mn = Math.min(...vals), mx = Math.max(...vals), w = 70, h = 28;
+  const mn = Math.min(...vals), mx = Math.max(...vals), w = 64, h = 26;
   const pts = vals.map((v, i) => `${(i / (vals.length - 1) * w).toFixed(1)},${(h - 2 - (mx === mn ? .5 : (v - mn) / (mx - mn)) * (h - 4)).toFixed(1)}`).join(" ");
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}"><polyline fill="none" stroke="${up ? "#26a69a" : "#ef5350"}" stroke-width="1.6" points="${pts}"/></svg>`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="flex:none"><polyline fill="none" stroke="${up ? "#26a69a" : "#ef5350"}" stroke-width="1.6" stroke-linejoin="round" points="${pts}"/></svg>`;
 }
+const SHORT = { XAU: "ORO", XAG: "AG", WTI: "WTI", EURUSD: "€/$", GBPUSD: "£/$", USDJPY: "$/¥", BTC: "BTC", ETH: "ETH", SPX: "SPX", NDX: "NDX", FTSEMIB: "MIB" };
 
 // ---------- markets ----------
 async function markets() {
-  loading();
+  skeleton(6);
   try {
     const [list, pf] = await Promise.all([api("markets"), api("portfolio").catch(() => null)]);
     const mine = list.filter((m) => m.mine), other = list.filter((m) => !m.mine);
-    const row = (m) => `<div class="row" onclick="openMarket('${m.code}')">
-      <div class="grow"><div class="name">${esc(m.name)}</div><div class="sub">${m.live ? "aperto" : "chiuso"} · ${esc(m.currency)}</div></div>
+    const row = (m) => `<div class="row tap" onclick="openMarket('${m.code}')">
+      <div class="avatar">${esc(SHORT[m.code] || m.code.slice(0, 3))}</div>
+      <div class="grow"><div class="name">${esc(m.name)}</div><div class="sub"><span class="dot ${m.live ? "live" : "off"}"></span>${m.live ? "Aperto" : "Chiuso"}</div></div>
       ${spark(m.spark, (m.chg ?? 0) >= 0)}
-      <div class="num"><div>${nf(m.price)}</div><span class="pill ${cls(m.chg)}">${pct(m.chg)}</span></div></div>`;
-    let pfHtml = "";
+      <div class="num" style="min-width:86px"><div style="font-weight:600">${nf(m.price)}</div><span class="chg ${cls(m.chg)}">${pct(m.chg)}</span></div></div>`;
+    let html = "";
     if (pf && pf.holdings && pf.holdings.length) {
-      const base = pf.total - pf.day;
-      pfHtml = `<div class="card"><div class="sub">Portafoglio</div><div class="big">${nf(pf.total, 2)} €</div>
-        <div class="${cls(pf.day)}">${pf.day >= 0 ? "+" : ""}${nf(pf.day, 2)} € oggi (${pct(base ? pf.day / base * 100 : 0)})</div>
-        ${pf.cost > 0 ? `<div class="sub ${cls(pf.pl)}">Totale da carico ${pf.pl >= 0 ? "+" : ""}${nf(pf.pl, 2)} € (${pct(pf.pl / pf.cost * 100)})</div>` : ""}
-        <div style="margin-top:8px">${pf.holdings.map((h) => `<div class="row"><div class="grow"><div class="name">${esc(h.name)}</div><div class="sub">${nf(h.qty, h.kind === "metal" ? 2 : 4)}${h.kind === "metal" ? " g" : ""}</div></div><div class="num">${nf(h.valueEur, 2)} €<div class="sub ${cls(h.dayEur)}">${h.dayEur == null ? "" : (h.dayEur >= 0 ? "+" : "") + nf(h.dayEur, 2) + " €"}</div></div></div>`).join("")}</div>
-        <div class="note">Per aggiungere o togliere posizioni usa /portafoglio nel bot.</div></div>`;
+      const base = pf.total - pf.day, dp = base ? pf.day / base * 100 : 0;
+      html += `<div class="card" style="margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="label">Portafoglio</span>${ic("wallet", "s")}</div>
+        <div class="big" style="margin-top:8px">${nf(pf.total, 2)} €</div>
+        <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="badge ${cls(pf.day)}">${pf.day >= 0 ? "+" : ""}${nf(pf.day, 2)} € · ${pct(dp)}</span><span class="sub">oggi</span>
+          ${pf.cost > 0 ? `<span class="badge ${cls(pf.pl)}">${pf.pl >= 0 ? "+" : ""}${nf(pf.pl, 2)} €</span><span class="sub">totale</span>` : ""}
+        </div>
+        <div style="margin:12px -16px -16px;border-top:1px solid var(--line)">${pf.holdings.map((h) => `<div class="row">
+          <div class="grow"><div class="name" style="font-size:14.5px">${esc(h.name)}</div><div class="sub">${nf(h.qty, h.kind === "metal" ? 2 : 4)}${h.kind === "metal" ? " g" : ""} × ${h.kind === "metal" ? nf(h.unitEur, 2) + " €/g" : nf(h.unitEur, 2) + " €"}</div></div>
+          <div class="num"><div style="font-weight:600">${nf(h.valueEur, 2)} €</div><div class="sub ${cls(h.dayEur)}">${h.dayEur == null ? "" : (h.dayEur >= 0 ? "+" : "") + nf(h.dayEur, 2) + " €"}</div></div></div>`).join("")}</div>
+      </div>`;
     }
-    $("#view").innerHTML = pfHtml +
-      (mine.length ? `<h2>I tuoi mercati</h2><div class="card" style="padding:4px 10px">${mine.map(row).join("")}</div>` : "") +
-      `<h2>${mine.length ? "Altri mercati" : "Mercati"}</h2><div class="card" style="padding:4px 10px">${other.map(row).join("")}</div>`;
+    if (mine.length) html += `<div class="sec"><h2>Seguiti</h2>${stamp()}</div><div class="list">${mine.map(row).join("")}</div>`;
+    html += `<div class="sec"><h2>${mine.length ? "Altri mercati" : "Mercati"}</h2>${mine.length ? "" : stamp()}</div><div class="list">${other.map(row).join("")}</div>`;
+    html += `<div class="note">Tocca un mercato per il grafico, la forbice di prezzo e le notizie. Portafoglio e mercati seguiti si gestiscono dal bot (/portafoglio, /topic).</div>`;
+    done(html);
   } catch (e) { fail(e); }
 }
 
 // ---------- market detail ----------
-let chartObj = null;
+let chartObj = null, CUR = null;
+function openSheet(title, body) {
+  const sh = $("#sheet"); sh.classList.add("open"); document.body.style.overflow = "hidden";
+  sh.innerHTML = `<div class="sbar"><button class="back" onclick="closeSheet()">${ic("back")}</button><div class="t">${esc(title)}</div></div>${body}`;
+  sh.scrollTop = 0;
+}
+function closeSheet() { $("#sheet").classList.remove("open"); document.body.style.overflow = ""; if (chartObj) { chartObj.remove(); chartObj = null; } }
+
 async function openMarket(code, tf = "5g") {
-  const sh = $("#sheet"); sh.classList.add("open");
-  sh.innerHTML = `<button class="back" onclick="closeSheet()">‹ Indietro</button><div class="center">Carico…</div>`;
+  const reuse = $("#sheet").classList.contains("open") && CUR === code;
+  CUR = code;
+  if (!reuse) openSheet("", `<div class="sk" style="height:80px;margin-top:8px"></div><div class="sk" style="height:330px"></div><div class="sk" style="height:140px"></div>`);
+  else if ($("#chart")) $("#chart").style.opacity = ".4";
   try {
-    const [d, nw] = await Promise.all([api("chart", { code, tf }), api("news", { code }).catch(() => [])]);
-    const c = d.candles, first = c[0], last = c.at(-1);
-    const chg = (last.c / first.o - 1) * 100;
+    const [d, nw] = await Promise.all([api("chart", { code, tf }), reuse && window.NW ? Promise.resolve(window.NW) : api("news", { code }).catch(() => [])]);
+    window.NW = nw;
+    const c = d.candles, first = c[0];
+    const per = (c.at(-1).c / first.o - 1) * 100;
     const hi = Math.max(...c.map((k) => k.h)), lo = Math.min(...c.map((k) => k.l));
-    const tfs = [["1g", "1G"], ["5g", "5G"], ["1m", "1M"], ["6m", "6M"], ["1a", "1A"]];
     const f = d.forecast;
-    sh.innerHTML = `<button class="back" onclick="closeSheet()">‹ Indietro</button>
-      <div class="sub">${esc(d.name)}</div><div class="big">${nf(d.price)} <span class="sub">${esc(d.currency)}</span></div>
-      <div class="${cls(chg)}">${pct(chg)} nel periodo · max ${nf(hi)} · min ${nf(lo)}</div>
+    const tfs = [["1g", "1G"], ["5g", "5G"], ["1m", "1M"], ["6m", "6M"], ["1a", "1A"]];
+    const tfName = { "1g": "oggi", "5g": "5 giorni", "1m": "1 mese", "6m": "6 mesi", "1a": "1 anno" }[tf];
+    const body = `
+      <div style="margin-top:4px"><span class="label">${esc(d.code)} · ${esc(d.currency)}</span></div>
+      <div class="big" style="font-size:36px;margin-top:4px">${nf(d.price)}</div>
+      <div style="margin-top:6px;display:flex;gap:8px;align-items:center"><span class="badge ${cls(per)}">${pct(per)}</span><span class="sub">${tfName}</span></div>
       <div class="seg">${tfs.map(([k, l]) => `<button class="${k === tf ? "on" : ""}" onclick="openMarket('${code}','${k}')">${l}</button>`).join("")}</div>
       <div id="chart"></div>
-      <div class="note">${f ? "🟦 Linee blu: forbice probabile (TimesFM)" : ""}${f && d.events.length ? " · " : ""}${d.events.length ? "🟨 frecce gialle: dati economici importanti" : ""}</div>
-      ${f ? `<div class="card" style="margin-top:12px"><div class="name">📐 Forbice probabile (TimesFM)</div>
-        ${[[0, "1 giorno"], [4, "1 settimana"], [19, "1 mese"]].filter(([i]) => i < f.dates.length).map(([i, l]) => `<div class="row"><div class="grow">${l}</div><div class="num">${nf(f.q10[i])} – ${nf(f.q90[i])}</div></div>`).join("")}
-        <div class="note">Le linee blu sul grafico sono la forbice${tf === "1g" ? " di 1 giorno" : tf === "5g" ? " di 1 settimana" : " dei prossimi giorni"}: 8 volte su 10 il prezzo dovrebbe restarci dentro. Non indica la direzione.</div></div>` : ""}
-      <button class="btn" onclick="askAbout('${code}','${esc(d.name)}')">🤖 Chiedi all'AI su ${esc(d.name)}</button>
-      ${nw[0] && nw[0].items.length ? `<h2>Notizie</h2><div class="card news" style="padding:2px 10px">${nw[0].items.map(newsItem).join("")}</div>` : ""}`;
+      <div class="legend">${f ? `<span><i class="lg-line"></i>Forbice probabile</span>` : ""}${d.events.length ? `<span><i class="lg-arrow"></i>Dato economico importante</span>` : ""}</div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="stat"><div class="label">Massimo ${tfName}</div><div class="v">${nf(hi)}</div></div>
+        <div class="stat"><div class="label">Minimo ${tfName}</div><div class="v">${nf(lo)}</div></div>
+      </div>
+      ${f ? `<div class="sec"><h2>Forbice probabile</h2><span class="badge acc">TimesFM</span></div>
+        <div class="card" style="padding:4px 16px">${[[0, "Domani"], [4, "Tra 1 settimana"], [19, "Tra 1 mese"]].filter(([i]) => i < f.dates.length).map(([i, l]) => `<div class="range"><span style="color:var(--txt2)">${l}</span><span class="num" style="font-weight:600">${nf(f.q10[i])} – ${nf(f.q90[i])}</span></div>`).join("")}</div>
+        <div class="note">8 volte su 10 il prezzo resta in questa fascia. Dice quanto è normale che si muova, non se salirà o scenderà.</div>` : ""}
+      <button class="btn" onclick="askAbout('${code}','${esc(d.name)}')">${ic("ai", "s")}Analizza ${esc(d.name)} con l'AI</button>
+      ${nw[0] && nw[0].items.length ? `<div class="sec"><h2>Ultime notizie</h2></div><div class="list hl">${nw[0].items.slice(0, 6).map(newsItem).join("")}</div>` : ""}`;
+    openSheet(d.name, body);
     drawChart(d, tf);
-  } catch (e) { if (e.message !== "401") sh.innerHTML = `<button class="back" onclick="closeSheet()">‹ Indietro</button><div class="err">${esc(e.message)}</div>`; }
+  } catch (e) { if (e.message !== "401") openSheet("", `<div class="err">${esc(e.message)}</div><button class="btn ghost" onclick="openMarket('${code}','${tf}')">Riprova</button>`); }
 }
-function closeSheet() { $("#sheet").classList.remove("open"); if (chartObj) { chartObj.remove(); chartObj = null; } }
 
 // the chart library draws in UTC: shift intraday times so the axis reads Rome time
 function romeOffset(t) {
@@ -221,20 +340,21 @@ function romeOffset(t) {
 function drawChart(d, tf) {
   if (chartObj) { chartObj.remove(); chartObj = null; }
   const el = $("#chart");
-  if (!window.LightweightCharts) { el.innerHTML = `<div class="center">Grafico non disponibile offline</div>`; return; }
+  if (!window.LightweightCharts) { el.innerHTML = `<div class="empty">Grafico non disponibile offline</div>`; return; }
   const intraday = tf === "1g" || tf === "5g";
   const ts = (t) => Math.floor((intraday ? t + romeOffset(t) : t) / 1000);
   chartObj = LightweightCharts.createChart(el, {
-    width: el.clientWidth, height: 320,
-    layout: { background: { color: "#1c2030" }, textColor: "#8b90a0" },
-    grid: { vertLines: { color: "rgba(255,255,255,.04)" }, horzLines: { color: "rgba(255,255,255,.04)" } },
-    timeScale: { timeVisible: intraday, secondsVisible: false, borderColor: "#2a2e39" },
-    rightPriceScale: { borderColor: "#2a2e39" },
-    localization: { locale: "it-IT" },
+    width: el.clientWidth, height: 330,
+    layout: { background: { color: "#171c27" }, textColor: "#6f7686", fontSize: 11, fontFamily: "-apple-system, system-ui, sans-serif" },
+    grid: { vertLines: { color: "rgba(255,255,255,.03)" }, horzLines: { color: "rgba(255,255,255,.04)" } },
+    timeScale: { timeVisible: intraday, secondsVisible: false, borderColor: "#262d3b" },
+    rightPriceScale: { borderColor: "#262d3b" },
+    crosshair: { horzLine: { color: "#323a4b", labelBackgroundColor: "#323a4b" }, vertLine: { color: "#323a4b", labelBackgroundColor: "#323a4b" } },
+    localization: { locale: "it-IT", priceFormatter: (p) => nf(p) },
     handleScale: { axisPressedMouseMove: false },
   });
   const f = d.forecast;
-  // which range goes on the chart: 1 day on 1G, 1 week on 5G, the whole curve on daily/weekly charts
+  // 1 day range on 1G, 1 week on 5G, the whole curve on daily/weekly charts
   const band = !f ? null : tf === "1g" ? { i: 0, label: "1 giorno" } : tf === "5g" ? { i: 4, label: "1 settimana" } : null;
   const s = chartObj.addCandlestickSeries({
     upColor: "#26a69a", downColor: "#ef5350", borderVisible: false, wickUpColor: "#26a69a", wickDownColor: "#ef5350",
@@ -249,18 +369,18 @@ function drawChart(d, tf) {
   const first = d.candles[0].t;
   const marks = d.events.filter((e) => e.t >= first).map((e) => {
     const near = d.candles.reduce((a, k) => Math.abs(k.t - e.t) < Math.abs(a.t - e.t) ? k : a, d.candles[0]);
-    return { time: ts(near.t), position: "aboveBar", color: "#f5b942", shape: "arrowDown", text: e.label.slice(0, 18) };
+    return { time: ts(near.t), position: "aboveBar", color: "#f0b44c", shape: "arrowDown", text: e.label.replace(/^\w{3} /, "").slice(0, 16) };
   });
   const uniq = []; const mt = new Set(); for (const m of marks) if (!mt.has(m.time)) { mt.add(m.time); uniq.push(m); }
   s.setMarkers(uniq.sort((a, b) => a.time - b.time));
   if (band) {
-    const pl = (price, title) => s.createPriceLine({ price, color: "rgba(66,165,245,.95)", lineWidth: 2, lineStyle: 0, axisLabelVisible: true, title });
+    const pl = (price, title) => s.createPriceLine({ price, color: "rgba(66,165,245,.9)", lineWidth: 2, lineStyle: 0, axisLabelVisible: true, title });
     pl(f.q90[band.i], `max ${band.label}`); pl(f.q10[band.i], `min ${band.label}`);
   } else if (f) {
     const lastT = ts(d.candles.at(-1).t);
     const pts = (arr) => [{ time: lastT, value: f.last_close }, ...f.dates.map((dt, i) => ({ time: Math.floor(Date.parse(dt + "T00:00:00Z") / 1000), value: arr[i] })).filter((p) => p.time > lastT)];
     const line = (arr, color, style) => chartObj.addLineSeries({ color, lineWidth: 2, lineStyle: style, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }).setData(pts(arr));
-    line(f.q90, "rgba(66,165,245,.95)", 0); line(f.q10, "rgba(66,165,245,.95)", 0); line(f.q50, "rgba(255,255,255,.45)", 2);
+    line(f.q90, "rgba(66,165,245,.9)", 0); line(f.q10, "rgba(66,165,245,.9)", 0); line(f.q50, "rgba(255,255,255,.35)", 2);
   }
   chartObj.timeScale().fitContent();
 }
@@ -268,109 +388,126 @@ function drawChart(d, tf) {
 // ---------- calendar ----------
 let CAL = "today";
 async function calendar() {
-  loading();
+  skeleton(5);
   try {
     const evs = await api("events", { range: CAL === "week" ? "week" : "today" });
-    let html = `<div class="seg"><button class="${CAL === "today" ? "on" : ""}" onclick="CAL='today';calendar()">Oggi</button><button class="${CAL === "week" ? "on" : ""}" onclick="CAL='week';calendar()">7 giorni</button></div>`;
-    if (!evs.length) html += `<div class="center">Nessun evento sui tuoi mercati.<br><span class="note">Mercati e livelli si scelgono con /topic nel bot.</span></div>`;
-    let day = "";
-    const now = Date.now();
+    let html = `<div class="seg"><button class="${CAL === "today" ? "on" : ""}" onclick="CAL='today';calendar()">Oggi e domani</button><button class="${CAL === "week" ? "on" : ""}" onclick="CAL='week';calendar()">Prossimi 7 giorni</button></div>`;
+    if (!evs.length) html += `<div class="empty">${ic("calendar")}<div>Nessun evento sui tuoi mercati.</div><div class="note">I mercati da seguire si scelgono con /topic nel bot.</div></div>`;
+    let day = ""; const now = Date.now();
     for (const e of evs) {
       const t = Date.parse(e.scheduled_at);
-      const d = tRome(t, { weekday: "long", day: "numeric", month: "long" });
-      if (d !== day) { html += `${day ? "</div>" : ""}<h2>${esc(d)}</h2><div class="card" style="padding:2px 10px">`; day = d; }
-      const parts = [];
-      if (e.actual) parts.push(`<b>uscito ${esc(e.actual)}</b>`);
-      if (e.forecast) parts.push(`previsto ${esc(e.forecast)}`);
-      if (e.previous) parts.push(`prec. ${esc(e.previous)}`);
-      html += `<div class="ev" style="${t < now && !e.actual ? "opacity:.6" : ""}"><div class="time">${tRome(t, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</div>
-        <div class="grow"><div><span class="dot ${e.impact}"></span><b>${esc(e.currency)}</b> ${esc(e.title)}</div>${parts.length ? `<div class="sub">${parts.join(" · ")}</div>` : ""}</div></div>`;
+      const dd = cap(tRome(t, { weekday: "long", day: "numeric", month: "long" }));
+      if (dd !== day) { html += `${day ? "</div>" : ""}<div class="sec"><h2>${esc(dd)}</h2></div><div class="list">`; day = dd; }
+      const vals = [["Attuale", e.actual], ["Previsto", e.forecast], ["Precedente", e.previous]].filter(([, v]) => v);
+      html += `<div class="ev ${t < now && !e.actual ? "past" : ""}"><div class="bar ${e.impact}"></div><div class="time">${hm(t)}</div>
+        <div class="grow"><div style="display:flex;gap:8px;align-items:center"><span class="badge">${esc(e.currency)}</span>${e.impact === "high" ? '<span class="badge down">Alto impatto</span>' : ""}</div>
+        <div style="margin-top:6px;font-weight:600">${esc(e.title)}</div>
+        ${vals.length ? `<div class="vals">${vals.map(([l, v]) => `<div>${l}<b>${esc(v)}</b></div>`).join("")}</div>` : ""}</div></div>`;
     }
     if (day) html += "</div>";
-    html += `<div class="note">🔴 alto · 🟠 medio · 🟡 basso impatto. Orari di Roma.</div>`;
-    $("#view").innerHTML = html;
+    html += `<div class="note">Barra rossa: impatto alto · arancione: medio. Orari di Roma.</div>`;
+    done(html);
   } catch (e) { fail(e); }
 }
 
 // ---------- crypto ----------
-const LI = { accumula: "🟢", normale: "🟡", rallenta: "🔴" }, LT = { accumula: "accumula di più", normale: "accumulo normale", rallenta: "rallenta gli acquisti" };
-const SI = { rialzo: "🟢", neutro: "🟡", ribasso: "🔴" }, ST = { rialzo: "trend in rialzo", neutro: "trend incerto", ribasso: "trend in ribasso" };
+const LONG = { accumula: ["up", "Accumula di più"], normale: ["", "Accumulo normale"], rallenta: ["down", "Rallenta acquisti"] };
+const LONGS = { accumula: "Accumula", normale: "Normale", rallenta: "Rallenta" };
+const SHORTT = { rialzo: ["up", "Trend ↑"], neutro: ["", "Trend –"], ribasso: ["down", "Trend ↓"] };
 let CX = [];
 async function cryptoTab() {
-  loading();
+  skeleton(7, 58);
   try {
     const { signals } = await api("crypto");
     CX = signals;
-    if (!signals.length) { $("#view").innerHTML = `<div class="center">Segnali non ancora calcolati.</div>`; return; }
-    $("#view").innerHTML = `<div class="note" style="margin:0 4px 8px">1° pallino = accumulo (mesi) · 2° = trend breve (settimane). PAC × = quanto comprare rispetto al tuo importo abituale.</div>
-      <div class="card" style="padding:4px 10px">${signals.map((s, i) => `<div class="row" onclick="cryptoDetail(${i})">
-        <div style="font-size:15px">${LI[s.long_signal]}${SI[s.short_signal]}</div>
-        <div class="grow"><div class="name">${esc(s.symbol)}</div><div class="sub">${esc(s.name)}</div></div>
-        <div class="num"><div>${nf(+s.price, +s.price < 1 ? 4 : 2)} $</div><div class="sub">PAC ×${nf(+s.dca_weight, 1)} · <span class="${cls(s.chg24)}">${pct(s.chg24 == null ? null : +s.chg24)}</span></div></div></div>`).join("")}</div>
-      <div class="note">Regole fisse sui prezzi, calcolate sulla chiusura di ieri. Non sono previsioni né consulenza personalizzata. Aggiornato ${tRome(signals[0].computed_at, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}.</div>`;
+    if (!signals.length) return done(`<div class="empty">Segnali non ancora calcolati.</div>`);
+    done(`<div class="card" style="display:flex;gap:12px;align-items:flex-start;margin-top:8px">${ic("info", "s")}
+        <div class="sub" style="font-size:13px;color:var(--txt2)"><b style="color:var(--txt)">Come leggerli.</b> Il primo segnale dice quanto comprare se accumuli a rate (PAC ×1 = importo abituale). Il secondo è il trend delle ultime settimane.</div></div>
+      <div class="sec"><h2>Top 10 per capitalizzazione</h2><span class="sub">chiusura di ieri</span></div>
+      <div class="list">${signals.map((s, i) => {
+        const [lc, lt] = LONG[s.long_signal], [sc, st] = SHORTT[s.short_signal];
+        return `<div class="row tap" onclick="cryptoDetail(${i})">
+          <div class="avatar">${esc(s.symbol.slice(0, 4))}</div>
+          <div class="grow"><div class="name">${esc(s.name)}</div>
+            <div style="display:flex;gap:6px;margin-top:5px"><span class="badge ${lc}">${LONGS[s.long_signal]} ×${nf(+s.dca_weight, 1)}</span><span class="badge ${sc}">${st}</span></div></div>
+          <div class="num"><div style="font-weight:600">${nf(+s.price, +s.price < 1 ? 4 : 2)} $</div><span class="chg ${cls(s.chg24 == null ? null : +s.chg24)}">${pct(s.chg24 == null ? null : +s.chg24)}</span></div></div>`;
+      }).join("")}</div>
+      <div class="note">Regole fisse calcolate sui prezzi, non previsioni né consulenza personalizzata.</div>`);
   } catch (e) { fail(e); }
 }
 function cryptoDetail(i) {
   const s = CX[i], p = +s.price, v = +s.vol7, dist = (+s.mayer - 1) * 100, fp = (x) => nf(x, x < 1 ? 4 : 2);
-  const sh = $("#sheet"); sh.classList.add("open");
-  sh.innerHTML = `<button class="back" onclick="closeSheet()">‹ Indietro</button>
-    <div class="sub">${esc(s.name)} · #${s.rank}</div><div class="big">${fp(p)} $</div>
-    <div class="sub">24h <span class="${cls(s.chg24)}">${pct(s.chg24 == null ? null : +s.chg24)}</span> · 7g <span class="${cls(s.chg7)}">${pct(s.chg7 == null ? null : +s.chg7)}</span></div>
-    <div class="card" style="margin-top:12px"><div class="name">Accumulo ${LI[s.long_signal]} ${LT[s.long_signal]}</div>
-      <p>Prezzo ${dist >= 0 ? "sopra" : "sotto"} la media dei 200 giorni del ${nf(Math.abs(dist), 0)}% (media ${fp(+s.ma200)} $).</p>
-      <p><b>PAC ×${nf(+s.dca_weight, 1)}</b>: se di solito metti 100 €, la regola ne mette ${nf(100 * s.dca_weight, 0)}.</p></div>
-    <div class="card"><div class="name">Breve ${SI[s.short_signal]} ${ST[s.short_signal]}</div>
-      <p>Media 20 giorni ${fp(+s.ma20)} $ ${+s.ma20 > +s.ma50 ? "sopra" : "sotto"} la media 50 giorni ${fp(+s.ma50)} $.</p>
-      <p>Oscillazione normale in 1 settimana: ±${nf(v * 100, 0)}% (${fp(p * (1 - v))} – ${fp(p * (1 + v))} $). Uno stop dentro questa fascia scatta spesso per puro rumore.</p></div>
-    <div class="card"><div class="name">Cosa dicono i dati storici (2016-2026)</div>
-      <p>Comprare di più sotto la media dei 200 giorni ha abbassato il costo medio su tutte le 10 monete (dal 3% al 19%).</p>
-      <p>Con il breve 🟢 il rendimento medio a 7 giorni è stato +3,2% contro +1,5%, ma le settimane positive restano il 51%. Il 🔴 non ha anticipato i ribassi.</p>
-      ${s.history_days < 900 ? `<p class="down">${esc(s.symbol)} ha solo ${s.history_days} giorni di storia: segnali meno affidabili.</p>` : ""}</div>
-    <button class="btn" onclick="closeSheet();show('ai');setTimeout(()=>send('Commenta i segnali del bot su ${esc(s.symbol)}'),50)">🤖 Chiedi all'AI</button>`;
+  const [lc, lt] = LONG[s.long_signal], [sc, st] = SHORTT[s.short_signal];
+  const c24 = s.chg24 == null ? null : +s.chg24, c7 = s.chg7 == null ? null : +s.chg7;
+  openSheet(s.name, `
+    <div><span class="label">${esc(s.symbol)} · #${s.rank}</span></div>
+    <div class="big" style="font-size:36px;margin-top:4px">${fp(p)} $</div>
+    <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge ${cls(c24)}">${pct(c24)}</span><span class="sub">24 ore</span><span class="badge ${cls(c7)}">${pct(c7)}</span><span class="sub">7 giorni</span></div>
+    <div class="sec"><h2>Accumulo</h2><span class="badge ${lc}">${lt}</span></div>
+    <div class="card">
+      <div class="big" style="font-size:26px">PAC ×${nf(+s.dca_weight, 1)}</div>
+      <div class="sub" style="margin-top:4px">Se di solito investi 100 €, la regola ne mette ${nf(100 * s.dca_weight, 0)} €.</div>
+      <div class="range" style="margin-top:8px"><span style="color:var(--txt2)">Media 200 giorni</span><span class="num">${fp(+s.ma200)} $</span></div>
+      <div class="range"><span style="color:var(--txt2)">Distanza dalla media</span><span class="num ${dist < 0 ? "up" : "down"}">${dist >= 0 ? "+" : ""}${nf(dist, 0)}%</span></div>
+    </div>
+    <div class="sec"><h2>Breve periodo</h2><span class="badge ${sc}">${st}</span></div>
+    <div class="card" style="padding:4px 16px">
+      <div class="range"><span style="color:var(--txt2)">Media 20 giorni</span><span class="num">${fp(+s.ma20)} $</span></div>
+      <div class="range"><span style="color:var(--txt2)">Media 50 giorni</span><span class="num">${fp(+s.ma50)} $</span></div>
+      <div class="range"><span style="color:var(--txt2)">Oscillazione normale 1 sett.</span><span class="num">±${nf(v * 100, 0)}%</span></div>
+    </div>
+    <div class="note">Fascia normale della settimana: ${fp(p * (1 - v))} – ${fp(p * (1 + v))} $. Uno stop dentro questa fascia scatta spesso per puro rumore.</div>
+    <div class="sec"><h2>Risultati storici 2016-2026</h2></div>
+    <div class="card" style="color:var(--txt2);font-size:14px">
+      <div>Comprare di più sotto la media dei 200 giorni ha abbassato il costo medio su tutte le 10 monete (dal 3% al 19%).</div>
+      <div style="margin-top:8px">Con il trend ↑ il rendimento medio a 7 giorni è stato +3,2% contro +1,5%, ma le settimane positive restano il 51%. Il trend ↓ non ha anticipato i ribassi.</div>
+      ${s.history_days < 900 ? `<div class="down" style="margin-top:8px">${esc(s.symbol)} ha solo ${s.history_days} giorni di storia: segnali meno affidabili.</div>` : ""}
+    </div>
+    <button class="btn" onclick="closeSheet();show('ai');setTimeout(()=>send('Commenta i segnali del bot su ${esc(s.symbol)}'),50)">${ic("ai", "s")}Chiedi all'AI su ${esc(s.symbol)}</button>`);
 }
 
 // ---------- news ----------
-function newsItem(n) {
-  return `<a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.title)}<div class="sub">${esc(n.source)} · ${ago(n.published)}</div></a>`;
-}
 let NF = "";
 const DIR = { "su": ["▲", "up"], "giù": ["▼", "down"], "giu": ["▼", "down"] };
 function ago(t) {
   const min = Math.round((Date.now() - t) / 60000);
   return min < 60 ? `${Math.max(min, 1)} min fa` : min < 1440 ? `${Math.round(min / 60)} h fa` : tRome(t, { day: "numeric", month: "short" });
 }
+function newsItem(n) {
+  return `<a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.title)}<div class="sub" style="margin-top:3px">${esc(n.source)} · ${ago(n.published)}</div></a>`;
+}
 async function news() {
-  loading();
+  if (!$("#view .chips")) skeleton(4, 120); else busy(true);
   try {
     const d = await api("feed", NF ? { code: NF } : {});
     const name = Object.fromEntries(d.topics.map((t) => [t.code, t.name_it]));
     const chips = [["", "I miei mercati"], ...d.topics.map((t) => [t.code, t.name_it])]
       .map(([c, l]) => `<button class="chip ${NF === c ? "on" : ""}" onclick="NF='${c}';news()">${esc(l)}</button>`).join("");
-    let html = `<div class="chips scroll">${chips}</div>`;
-    if (!d.mine.length && !NF) html += `<div class="center">Non segui ancora nessun mercato: scegline uno qui sopra, oppure usa /topic nel bot.</div>`;
-    html += `<h2>Notizie che muovono i prezzi</h2>`;
-    if (!d.important.length) html += `<div class="card sub">Nessuna notizia importante nelle ultime 72 ore${NF ? " su questo mercato" : ""}.</div>`;
+    let html = `<div class="chips">${chips}</div>`;
+    if (!d.mine.length && !NF) html += `<div class="note">Non segui ancora nessun mercato: scegline uno qui sopra o usa /topic nel bot.</div>`;
+    html += `<div class="sec"><h2>Notizie che muovono i prezzi</h2><span class="sub">ultime 72 ore</span></div>`;
     window.NEWS = d.important;
-    html += d.important.map((n, i) => {
+    html += d.important.length ? d.important.map((n, i) => {
       const dirs = Object.entries(n.ai_dirs || {}).map(([c, v]) => {
-        const [a, k] = DIR[v] || ["•", ""]; return `<span class="tag ${k}">${esc(name[c] || c)} ${a}</span>`;
-      }).join("") || (n.topic_codes || []).map((c) => `<span class="tag">${esc(name[c] || c)}</span>`).join("");
+        const [a, k] = DIR[v] || ["", ""]; return `<span class="badge ${k}">${esc(name[c] || c)} ${a}</span>`;
+      }).join("") || (n.topic_codes || []).map((c) => `<span class="badge">${esc(name[c] || c)}</span>`).join("");
+      const imp = n.impact === "high" ? '<span class="badge down">Molto importante</span>' : n.impact === "medium" ? '<span class="badge warn">Importante</span>' : '<span class="badge">Minore</span>';
       return `<div class="ncard">
-        <div class="nhead"><span class="imp ${n.impact}">${n.impact === "high" ? "Molto importante" : n.impact === "medium" ? "Importante" : "Minore"}</span><span class="sub">${ago(Date.parse(n.published_at))}</span></div>
+        <div class="nmeta">${imp}<span>${esc(n.news_source || "")}</span><span>·</span><span>${ago(Date.parse(n.published_at))}</span></div>
         <a class="ntitle" href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title_it || n.title)}</a>
-        ${n.ai_why ? `<div class="why"><b>Perché conta:</b> ${esc(n.ai_why)}</div>` : ""}
+        ${n.ai_why ? `<div class="why">${esc(n.ai_why)}</div>` : ""}
         <div class="tags">${dirs}</div>
-        <div class="nfoot"><span class="sub">${esc(n.news_source || "")}</span><button class="mini" onclick="explain(${i})">🤖 Spiegamela</button></div>
+        <div class="nfoot"><button class="link" onclick="explain(${i})">${ic("ai", "s")}Spiegamela</button><a class="link" href="${esc(n.url)}" target="_blank" rel="noopener">Leggi ${ic("ext", "s")}</a></div>
       </div>`;
-    }).join("");
-    if (NF && d.headlines.length) html += `<h2>Altri titoli su ${esc(name[NF] || NF)}</h2><div class="card news" style="padding:2px 10px">${d.headlines.map(newsItem).join("")}</div>`;
-    html += `<div class="note">▲ / ▼ = effetto più probabile secondo l'AI, non una previsione certa. Tocca il titolo per leggere l'articolo.</div>`;
-    $("#view").innerHTML = html;
+    }).join("") : `<div class="empty">${ic("news")}<div>Nessuna notizia importante${NF ? " su questo mercato" : ""} nelle ultime 72 ore.</div></div>`;
+    if (NF && d.headlines.length) html += `<div class="sec"><h2>Altri titoli · ${esc(name[NF] || NF)}</h2></div><div class="list hl">${d.headlines.map(newsItem).join("")}</div>`;
+    html += `<div class="note">▲ ▼ indicano l'effetto più probabile secondo l'AI, non una previsione certa.</div>`;
+    done(html);
   } catch (e) { fail(e); }
 }
 function explain(i) {
-  const n = window.NEWS[i]; const code = (n.topic_codes || [])[0] || null;
-  FOCUS = code; show("ai");
+  const n = window.NEWS[i];
+  FOCUS = (n.topic_codes || [])[0] || null; show("ai");
   setTimeout(() => send(`Spiegami in parole semplici questa notizia e cosa può significare per i miei mercati: "${n.title_it || n.title}"`), 50);
 }
 
@@ -382,20 +519,26 @@ function md(t) {
   return h.replace(/\n{2,}/g, "<br><br>").replace(/\n/g, "<br>");
 }
 function ai() {
-  $("#view").innerHTML = `<div id="msgs">${CHAT.length ? "" : `<div class="center" style="padding:20px 10px">Chiedi qualsiasi cosa sui tuoi mercati: risponde con i dati del bot (prezzi, calendario, notizie, segnali).</div>
-      <div class="chips">${["Perché l'oro si muove oggi?", "Cosa esce questa settimana?", "Quali crypto sono in zona di accumulo?", "Com'è messo il mio portafoglio?"].map((q) => `<button class="chip" onclick="send(this.textContent)">${q}</button>`).join("")}</div>`}</div>
-    <div style="position:sticky;bottom:calc(64px + env(safe-area-inset-bottom));background:var(--bg);padding:8px 0;display:flex;gap:8px">
-      <textarea id="q" rows="1" placeholder="Scrivi una domanda…"></textarea><button class="btn" style="width:auto;margin:0;padding:0 18px" onclick="send()">↑</button></div>`;
+  busy(false);
+  const sugg = ["Perché l'oro si muove oggi?", "Cosa esce questa settimana sui miei mercati?", "Quali crypto sono in zona di accumulo?", "Com'è messo il mio portafoglio?"];
+  $("#view").innerHTML = `<div id="msgs">${CHAT.length ? "" : `<div class="hero"><div class="ic">${ic("ai")}</div>
+      <div style="font-weight:650;color:var(--txt);font-size:17px">Chiedi sui tuoi mercati</div>
+      <div class="sub" style="font-size:14px;margin-top:4px">Risponde con i dati dell'app: prezzi, calendario, notizie e segnali.</div></div>
+      <div class="sugg">${sugg.map((q) => `<button onclick="send(this.dataset.q)" data-q="${esc(q)}">${esc(q)}${ic("chev", "s")}</button>`).join("")}</div>`}</div>
+    <div style="height:84px"></div>
+    <div class="composer"><textarea id="q" rows="1" placeholder="Scrivi una domanda…"></textarea><button class="send" onclick="send()" aria-label="Invia">${ic("send", "s")}</button></div>`;
+  const q = $("#q"); q.oninput = () => { q.style.height = "auto"; q.style.height = Math.min(q.scrollHeight, 120) + "px"; };
   renderChat();
 }
 function renderChat() {
   const box = $("#msgs"); if (!box || !CHAT.length) return;
-  box.innerHTML = CHAT.map((m) => `<div class="msg ${m.r}">${m.r === "me" ? esc(m.t) : m.t === "…" ? `<span class="typing">Sto pensando…</span>` : md(m.t)}</div>`).join("");
+  box.innerHTML = CHAT.map((m) => `<div class="msg ${m.r}">${m.r === "me" ? esc(m.t) : m.t === "…" ? `<span class="typing"><span></span><span></span><span></span></span>` : md(m.t)}</div>`).join("") +
+    `<div style="text-align:center;margin-top:10px"><button class="link" style="color:var(--mut);font-size:13px" onclick="CHAT=[];sessionStorage.removeItem('chat');ai()">Nuova conversazione</button></div>`;
   window.scrollTo(0, document.body.scrollHeight);
 }
 async function send(text) {
   const q = (text ?? $("#q")?.value ?? "").trim(); if (!q) return;
-  if ($("#q")) $("#q").value = "";
+  if ($("#q")) { $("#q").value = ""; $("#q").style.height = ""; }
   CHAT.push({ r: "me", t: q }, { r: "ai", t: "…" }); renderChat();
   try {
     const { answer } = await api("ask", {}, { q, code: FOCUS });
@@ -407,7 +550,7 @@ async function send(text) {
 function askAbout(code, name) { closeSheet(); FOCUS = code; show("ai"); setTimeout(() => send(`Fammi il quadro di ${name}: tendenza, cosa lo muove e cosa arriva nei prossimi giorni.`), 50); }
 
 // ---------- start ----------
-function start() { $("#nav").style.display = ""; $("#refresh").style.display = ""; show("markets"); }
+function start() { $("#hdr").style.display = ""; $("#nav").style.display = ""; show("markets"); }
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 if (KEY) api("me").then(start).catch((e) => { if (e.message !== "401") start(); }); else login();
 document.addEventListener("visibilitychange", () => { if (!document.hidden && KEY && TAB !== "ai" && !$("#sheet").classList.contains("open")) show(TAB); });
