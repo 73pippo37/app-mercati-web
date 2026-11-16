@@ -391,17 +391,8 @@ function drawChart(d, tf) {
   });
   const f = d.forecast;
   // 1 day range on 1G, 1 week on 5G, the whole curve on daily/weekly charts
-  const band = !f ? null : tf === "1g" ? { i: 0, label: "1 giorno" } : tf === "5g" ? { i: 4, label: "1 settimana" } : null;
+  const band = null; // every timeframe now uses the cone
   const times = [...new Set(d.candles.map((k) => ts(k.t)))];
-  if (band) {
-    // shaded band between min and max, drawn under the candles
-    chartObj.addBaselineSeries({
-      baseValue: { type: "price", price: f.q10[band.i] }, lineWidth: 1,
-      topLineColor: "rgba(66,165,245,.0)", topFillColor1: "rgba(66,165,245,.16)", topFillColor2: "rgba(66,165,245,.16)",
-      bottomLineColor: "rgba(0,0,0,0)", bottomFillColor1: "rgba(0,0,0,0)", bottomFillColor2: "rgba(0,0,0,0)",
-      priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
-    }).setData(times.map((t) => ({ time: t, value: f.q90[band.i] })));
-  }
   const s = chartObj.addCandlestickSeries({
     upColor: "#26a69a", downColor: "#ef5350", borderVisible: false, wickUpColor: "#26a69a", wickDownColor: "#ef5350",
     autoscaleInfoProvider: (orig) => {
@@ -419,17 +410,29 @@ function drawChart(d, tf) {
   });
   const uniq = []; const mt = new Set(); for (const m of marks) if (!mt.has(m.time)) { mt.add(m.time); uniq.push(m); }
   s.setMarkers(uniq.sort((a, b) => a.time - b.time));
-  if (band) {
-    const pl = (price, title) => s.createPriceLine({ price, color: "rgba(66,165,245,.95)", lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title });
-    pl(f.q90[band.i], `max ${band.label}`); pl(f.q10[band.i], `min ${band.label}`);
-  } else if (f) {
-    // filled cone for the next sessions: blue area down from the max, background-coloured area down from the min
-    const lastT = ts(d.candles.at(-1).t), lastC = d.candles.at(-1).c;
-    const pts = (arr) => [{ time: lastT, value: lastC }, ...f.dates.map((dt, i) => ({ time: Math.floor(Date.parse(dt + "T00:00:00Z") / 1000), value: arr[i] })).filter((p) => p.time > lastT)];
+  if (f) {
+    // filled cone from the last candle: blue area down from the max, background-coloured area down from the min
+    const last = d.candles.at(-1), lastT = ts(last.t), now = last.c;
+    let hi, lo, mid;
+    if (intraday) {
+      // same candle spacing as the chart, so the cone gets real width: 1G -> until tomorrow, 5G -> 1 week
+      const days = tf === "1g" ? 1 : 5, n = Math.max(24, Math.min(d.candles.length, days * 24 * (tf === "1g" ? 4 : 1))), step = days * 24 * 3600e3 / n; // the cone never takes more room than the candles
+      const at = (arr, dayf) => { // value at fractional day: sqrt growth on day 1, then linear between daily points
+        if (dayf <= 1) return now + (arr[0] - now) * Math.sqrt(dayf);
+        const a = Math.floor(dayf), b = Math.min(a + 1, days), w = dayf - a;
+        return arr[a - 1] + (arr[b - 1] - arr[a - 1]) * w;
+      };
+      const mk = (arr) => [{ time: lastT, value: now }, ...Array.from({ length: n }, (_, k) => ({ time: ts(last.t + (k + 1) * step), value: at(arr, (k + 1) / n * days) }))];
+      hi = mk(f.q90); lo = mk(f.q10); mid = mk(f.q50);
+    } else {
+      const mk = (arr) => [{ time: lastT, value: now }, ...f.dates.map((dt, i) => ({ time: Math.floor(Date.parse(dt + "T00:00:00Z") / 1000), value: arr[i] })).filter((p) => p.time > lastT)];
+      hi = mk(f.q90); lo = mk(f.q10); mid = mk(f.q50);
+    }
+    const label = tf === "1g" ? " domani" : tf === "5g" ? " 1 sett." : "";
     const base = { lineWidth: 2, priceLineVisible: false, crosshairMarkerVisible: false };
-    chartObj.addAreaSeries({ ...base, lineColor: "rgba(66,165,245,.95)", topColor: "rgba(66,165,245,.30)", bottomColor: "rgba(66,165,245,.30)", lastValueVisible: true, title: "max" }).setData(pts(f.q90));
-    chartObj.addAreaSeries({ ...base, lineColor: "rgba(66,165,245,.95)", topColor: "#171c27", bottomColor: "#171c27", lastValueVisible: true, title: "min" }).setData(pts(f.q10));
-    chartObj.addLineSeries({ color: "rgba(255,255,255,.55)", lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }).setData(pts(f.q50));
+    chartObj.addAreaSeries({ ...base, lineColor: "rgba(66,165,245,.95)", topColor: "rgba(66,165,245,.30)", bottomColor: "rgba(66,165,245,.30)", lastValueVisible: true, title: "max" + label }).setData(hi);
+    chartObj.addAreaSeries({ ...base, lineColor: "rgba(66,165,245,.95)", topColor: "#171c27", bottomColor: "#171c27", lastValueVisible: true, title: "min" + label }).setData(lo);
+    chartObj.addLineSeries({ color: "rgba(255,255,255,.55)", lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }).setData(mid);
   }
   chartObj.timeScale().fitContent();
 }
