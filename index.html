@@ -105,6 +105,24 @@ input:focus,textarea:focus{border-color:var(--acc)}
 .range{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line)}
 .range:last-child{border-bottom:0}
 
+/* forecast card */
+.fc{background:linear-gradient(160deg,rgba(66,165,245,.13),rgba(66,165,245,.03) 55%),var(--surface);border:1px solid rgba(66,165,245,.28);border-radius:var(--r);padding:16px;margin-top:16px}
+.fc-h{display:flex;justify-content:space-between;align-items:flex-start}
+.fc-t{font-size:18px;font-weight:700;margin-top:2px;letter-spacing:-.01em}
+.seg.sm{margin:14px 0 4px;background:rgba(15,19,28,.5)}
+.seg.sm button{padding:7px 0;font-size:12.5px}
+.fc-range{display:flex;align-items:baseline;gap:8px;justify-content:center;margin-top:14px;font-size:27px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.fc-range .sep{color:var(--mut);font-weight:400}
+.fc-pct{text-align:center;font-size:13px;color:var(--txt2);margin-top:2px}
+.rbar{margin:30px 4px 6px}
+.rtrack{position:relative;height:10px;border-radius:6px;background:var(--surface2)}
+.rband{position:absolute;top:0;bottom:0;border-radius:6px;background:linear-gradient(90deg,rgba(239,83,80,.55),rgba(66,165,245,.85) 50%,rgba(38,166,154,.55));box-shadow:0 0 14px rgba(66,165,245,.45)}
+.rnow{position:absolute;top:-5px;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:#fff;border:4px solid var(--acc);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.rnow span{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11.5px;font-weight:700;background:#fff;color:#0f131c;border-radius:6px;padding:2px 6px}
+.rlab{display:flex;justify-content:space-between;margin-top:8px;font-size:11.5px;color:var(--mut);font-weight:600}
+.fc-note{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--txt2);line-height:1.45}
+.fc-note svg{color:var(--acc);margin-top:1px}
+
 /* calendar */
 .ev{display:flex;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line);position:relative}
 .ev:last-child{border-bottom:0}
@@ -297,7 +315,7 @@ function openSheet(title, body) {
 }
 function closeSheet() { $("#sheet").classList.remove("open"); document.body.style.overflow = ""; if (chartObj) { chartObj.remove(); chartObj = null; } }
 
-async function openMarket(code, tf = "5g") {
+async function openMarket(code, tf = "1m") {
   const reuse = $("#sheet").classList.contains("open") && CUR === code;
   CUR = code;
   if (!reuse) openSheet("", `<div class="sk" style="height:80px;margin-top:8px"></div><div class="sk" style="height:330px"></div><div class="sk" style="height:140px"></div>`);
@@ -317,19 +335,37 @@ async function openMarket(code, tf = "5g") {
       <div style="margin-top:6px;display:flex;gap:8px;align-items:center"><span class="badge ${cls(per)}">${pct(per)}</span><span class="sub">${tfName}</span></div>
       <div class="seg">${tfs.map(([k, l]) => `<button class="${k === tf ? "on" : ""}" onclick="openMarket('${code}','${k}')">${l}</button>`).join("")}</div>
       <div id="chart"></div>
-      <div class="legend">${f ? `<span><i class="lg-line"></i>Forbice probabile</span>` : ""}${d.events.length ? `<span><i class="lg-arrow"></i>Dato economico importante</span>` : ""}</div>
+      <div class="legend">${f ? `<span><i class="lg-line" style="height:8px;background:rgba(66,165,245,.35);border:1px solid var(--acc)"></i>Forbice probabile</span>` : ""}${d.events.length ? `<span><i class="lg-arrow"></i>Dato economico importante</span>` : ""}</div>
       <div class="grid2" style="margin-top:14px">
         <div class="stat"><div class="label">Massimo ${tfName}</div><div class="v">${nf(hi)}</div></div>
         <div class="stat"><div class="label">Minimo ${tfName}</div><div class="v">${nf(lo)}</div></div>
       </div>
-      ${f ? `<div class="sec"><h2>Forbice probabile</h2><span class="badge acc">TimesFM</span></div>
-        <div class="card" style="padding:4px 16px">${[[0, "Domani"], [4, "Tra 1 settimana"], [19, "Tra 1 mese"]].filter(([i]) => i < f.dates.length).map(([i, l]) => `<div class="range"><span style="color:var(--txt2)">${l}</span><span class="num" style="font-weight:600">${nf(f.q10[i])} – ${nf(f.q90[i])}</span></div>`).join("")}</div>
-        <div class="note">8 volte su 10 il prezzo resta in questa fascia. Dice quanto è normale che si muova, non se salirà o scenderà.</div>` : ""}
+      ${f ? `<div class="fc">
+        <div class="fc-h"><div><div class="label">Dove può arrivare</div><div class="fc-t">Forbice probabile</div></div><span class="badge acc">AI · TimesFM</span></div>
+        <div class="seg sm">${[[0, "Domani"], [4, "1 settimana"], [19, "1 mese"]].filter(([i]) => i < f.dates.length).map(([i, l], k) => `<button class="${k === 0 ? "on" : ""}" onclick="fcShow(${i},this)">${l}</button>`).join("")}</div>
+        <div id="fcBody"></div>
+      </div>` : ""}
       <button class="btn" onclick="askAbout('${code}','${esc(d.name)}')">${ic("ai", "s")}Analizza ${esc(d.name)} con l'AI</button>
       ${nw[0] && nw[0].items.length ? `<div class="sec"><h2>Ultime notizie</h2></div><div class="list hl">${nw[0].items.slice(0, 6).map(newsItem).join("")}</div>` : ""}`;
     openSheet(d.name, body);
+    window.FC = { f, now: d.price };
+    if (f) fcShow(0);
     drawChart(d, tf);
   } catch (e) { if (e.message !== "401") openSheet("", `<div class="err">${esc(e.message)}</div><button class="btn ghost" onclick="openMarket('${code}','${tf}')">Riprova</button>`); }
+}
+
+function fcShow(i, btn) {
+  if (btn) btn.parentNode.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b === btn));
+  const { f, now } = window.FC, lo = f.q10[i], hi = f.q90[i];
+  const a = Math.min(lo, now), b = Math.max(hi, now), pad = (b - a) * 0.18 || 1, min = a - pad, max = b + pad;
+  const x = (v) => ((v - min) / (max - min)) * 100;
+  const when = i === 0 ? "domani" : i === 4 ? "tra 1 settimana" : "tra 1 mese";
+  $("#fcBody").innerHTML = `
+    <div class="fc-range"><span class="down">${nf(lo)}</span><span class="sep">–</span><span class="up">${nf(hi)}</span></div>
+    <div class="fc-pct">${pct((lo / now - 1) * 100)} / ${pct((hi / now - 1) * 100)} rispetto a ora</div>
+    <div class="rbar"><div class="rtrack"><div class="rband" style="left:${x(lo)}%;width:${x(hi) - x(lo)}%"></div><div class="rnow" style="left:${x(now)}%"><span>Ora ${nf(now)}</span></div></div>
+      <div class="rlab" style="padding-left:${x(lo)}%;padding-right:${100 - x(hi)}%"><span>minimo</span><span>massimo</span></div></div>
+    <div class="fc-note">${ic("info", "s")}<span><b style="color:var(--txt)">8 volte su 10</b> il prezzo ${when} resta dentro questa fascia. Ti dice quanto può muoversi, non se salirà o scenderà.</span></div>`;
 }
 
 // the chart library draws in UTC: shift intraday times so the axis reads Rome time
@@ -356,6 +392,16 @@ function drawChart(d, tf) {
   const f = d.forecast;
   // 1 day range on 1G, 1 week on 5G, the whole curve on daily/weekly charts
   const band = !f ? null : tf === "1g" ? { i: 0, label: "1 giorno" } : tf === "5g" ? { i: 4, label: "1 settimana" } : null;
+  const times = [...new Set(d.candles.map((k) => ts(k.t)))];
+  if (band) {
+    // shaded band between min and max, drawn under the candles
+    chartObj.addBaselineSeries({
+      baseValue: { type: "price", price: f.q10[band.i] }, lineWidth: 1,
+      topLineColor: "rgba(66,165,245,.0)", topFillColor1: "rgba(66,165,245,.16)", topFillColor2: "rgba(66,165,245,.16)",
+      bottomLineColor: "rgba(0,0,0,0)", bottomFillColor1: "rgba(0,0,0,0)", bottomFillColor2: "rgba(0,0,0,0)",
+      priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+    }).setData(times.map((t) => ({ time: t, value: f.q90[band.i] })));
+  }
   const s = chartObj.addCandlestickSeries({
     upColor: "#26a69a", downColor: "#ef5350", borderVisible: false, wickUpColor: "#26a69a", wickDownColor: "#ef5350",
     autoscaleInfoProvider: (orig) => {
@@ -374,13 +420,16 @@ function drawChart(d, tf) {
   const uniq = []; const mt = new Set(); for (const m of marks) if (!mt.has(m.time)) { mt.add(m.time); uniq.push(m); }
   s.setMarkers(uniq.sort((a, b) => a.time - b.time));
   if (band) {
-    const pl = (price, title) => s.createPriceLine({ price, color: "rgba(66,165,245,.9)", lineWidth: 2, lineStyle: 0, axisLabelVisible: true, title });
+    const pl = (price, title) => s.createPriceLine({ price, color: "rgba(66,165,245,.95)", lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title });
     pl(f.q90[band.i], `max ${band.label}`); pl(f.q10[band.i], `min ${band.label}`);
   } else if (f) {
-    const lastT = ts(d.candles.at(-1).t);
-    const pts = (arr) => [{ time: lastT, value: f.last_close }, ...f.dates.map((dt, i) => ({ time: Math.floor(Date.parse(dt + "T00:00:00Z") / 1000), value: arr[i] })).filter((p) => p.time > lastT)];
-    const line = (arr, color, style) => chartObj.addLineSeries({ color, lineWidth: 2, lineStyle: style, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }).setData(pts(arr));
-    line(f.q90, "rgba(66,165,245,.9)", 0); line(f.q10, "rgba(66,165,245,.9)", 0); line(f.q50, "rgba(255,255,255,.35)", 2);
+    // filled cone for the next sessions: blue area down from the max, background-coloured area down from the min
+    const lastT = ts(d.candles.at(-1).t), lastC = d.candles.at(-1).c;
+    const pts = (arr) => [{ time: lastT, value: lastC }, ...f.dates.map((dt, i) => ({ time: Math.floor(Date.parse(dt + "T00:00:00Z") / 1000), value: arr[i] })).filter((p) => p.time > lastT)];
+    const base = { lineWidth: 2, priceLineVisible: false, crosshairMarkerVisible: false };
+    chartObj.addAreaSeries({ ...base, lineColor: "rgba(66,165,245,.95)", topColor: "rgba(66,165,245,.30)", bottomColor: "rgba(66,165,245,.30)", lastValueVisible: true, title: "max" }).setData(pts(f.q90));
+    chartObj.addAreaSeries({ ...base, lineColor: "rgba(66,165,245,.95)", topColor: "#171c27", bottomColor: "#171c27", lastValueVisible: true, title: "min" }).setData(pts(f.q10));
+    chartObj.addLineSeries({ color: "rgba(255,255,255,.55)", lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }).setData(pts(f.q50));
   }
   chartObj.timeScale().fitContent();
 }
