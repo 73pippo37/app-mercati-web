@@ -1,5 +1,5 @@
 // App shell offline; data always from the network. Pages are always revalidated, so updates show at once.
-const CACHE = "mercati-v4";
+const CACHE = "mercati-v5";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./apple-touch-icon.png", "./icon-192.png",
   "https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting())); });

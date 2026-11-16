@@ -123,6 +123,24 @@ input:focus,textarea:focus{border-color:var(--acc)}
 .fc-note{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--txt2);line-height:1.45}
 .fc-note svg{color:var(--acc);margin-top:1px}
 
+/* metals */
+.mhero{background:linear-gradient(160deg,rgba(240,180,76,.16),rgba(240,180,76,.03) 60%),var(--surface);border:1px solid rgba(240,180,76,.3);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.mhero.ag{background:linear-gradient(160deg,rgba(200,210,225,.14),rgba(200,210,225,.03) 60%),var(--surface);border-color:rgba(200,210,225,.28)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--txt);display:grid;place-items:center}
+.stepper .val{min-width:76px;text-align:center;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.ptable .row{padding:12px 14px}
+.ptable .hd{font-size:11.5px;color:var(--mut);font-weight:650;text-transform:uppercase;letter-spacing:.05em;padding:10px 14px;background:var(--surface2)}
+.ptable .c{width:96px;text-align:right;font-variant-numeric:tabular-nums}
+.ptable .buy{color:var(--warn);font-weight:700}
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.calc label{font-size:12px;color:var(--mut);font-weight:600;display:block;margin-bottom:6px}
+select{width:100%;background:var(--surface2);border:1px solid var(--line);color:var(--txt);border-radius:14px;padding:13px 12px;font-size:16px;font-family:inherit;-webkit-appearance:none;appearance:none}
+.calc input{background:var(--surface2);font-size:18px;font-weight:650;padding:12px 13px}
+.cout{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.cout div{background:var(--surface2);border-radius:14px;padding:12px 13px}
+.cout b{display:block;font-size:20px;font-variant-numeric:tabular-nums;margin-top:2px}
+
 /* calendar */
 .ev{display:flex;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line);position:relative}
 .ev:last-child{border-bottom:0}
@@ -199,6 +217,9 @@ const P = {
   ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h4"/>',
   send: '<path d="M12 19V5M5 12l7-7 7 7"/>',
   wallet: '<rect x="3.5" y="6" width="17" height="13" rx="3"/><path d="M16 12.5h2M3.5 9.5h17"/>',
+  metals: '<path d="M3.5 18l2.5-6.5h12L20.5 18z"/><path d="M8 11.5L9.8 6h4.4l1.8 5.5"/>',
+  minus: '<path d="M6 12h12"/>',
+  plus: '<path d="M12 6v12M6 12h12"/>',
   info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/>',
 };
 const ic = (n, c = "") => `<svg class="i ${c}" viewBox="0 0 24 24">${P[n]}</svg>`;
@@ -242,8 +263,8 @@ function login(msg) {
 }
 
 // ---------- shell ----------
-const TABS = [["markets", "Mercati"], ["calendar", "Calendario"], ["crypto", "Crypto"], ["news", "Notizie"], ["ai", "Chiedi"]];
-const TITLES = { markets: "Mercati", calendar: "Calendario", crypto: "Crypto", news: "Notizie", ai: "Assistente" };
+const TABS = [["markets", "Mercati"], ["metals", "Metalli"], ["calendar", "Calendario"], ["crypto", "Crypto"], ["news", "Notizie"], ["ai", "Chiedi"]];
+const TITLES = { markets: "Mercati", metals: "Metalli preziosi", calendar: "Calendario", crypto: "Crypto", news: "Notizie", ai: "Assistente" };
 $("#nav").innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}">${ic(k)}${l}</button>`).join("");
 document.querySelectorAll("#nav button").forEach((b) => b.onclick = () => { if (TAB === b.dataset.tab) window.scrollTo({ top: 0, behavior: "smooth" }); show(b.dataset.tab); });
 $("#refresh").innerHTML = ic("refresh", "s");
@@ -257,7 +278,7 @@ function show(tab) {
   $("#title").textContent = TITLES[tab];
   $("#hsub").innerHTML = `<span class="sub">${cap(tRome(Date.now(), { weekday: "long", day: "numeric", month: "long" }))}</span>`;
   $("#refresh").style.visibility = tab === "ai" ? "hidden" : "visible";
-  ({ markets, calendar, crypto: cryptoTab, news, ai })[tab]();
+  ({ markets, metals, calendar, crypto: cryptoTab, news, ai })[tab]();
 }
 const busy = (on) => $("#refresh").classList.toggle("spin", on);
 const skeleton = (n = 4, h = 64) => { busy(true); $("#view").innerHTML = Array.from({ length: n }, (_, i) => `<div class="sk" style="height:${i === 0 ? h * 1.8 : h}px"></div>`).join(""); };
@@ -435,6 +456,87 @@ function drawChart(d, tf) {
     chartObj.addLineSeries({ color: "rgba(255,255,255,.55)", lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }).setData(mid);
   }
   chartObj.timeScale().fitContent();
+}
+
+// ---------- metals (for gold buyers: euro per gram by purity) ----------
+const PURITY = {
+  oro: [["24 kt", 999], ["22 kt", 916], ["21 kt", 875], ["18 kt", 750], ["14 kt", 585], ["9 kt", 375], ["8 kt", 333]],
+  argento: [["Fino", 999], ["Sterling", 925], ["Monete", 900], ["", 835], ["", 800]],
+  platino: [["", 999], ["", 950], ["", 900], ["", 850]],
+  palladio: [["", 999], ["", 950], ["", 500]],
+};
+let MT = "oro", MD = null, BUY = null, mTimer = null, buyTimer = null;
+const gfmt = (v) => nf(v, v < 5 ? 3 : 2);
+async function metals(silent) {
+  if (!silent) skeleton(5, 70); else busy(true);
+  try {
+    MD = await api("metals");
+    BUY = MD.buy_pct ?? (Number(localStorage.getItem("buy")) || null);
+    if (silent && $("#mHero")) { busy(false); return mRender(); }
+    done(`<div class="seg" id="mSeg">${MD.metals.map((m) => `<button data-k="${m.key}" class="${m.key === MT ? "on" : ""}" onclick="MT='${m.key}';mSeg();mRender();mCalcOpts()">${m.name}</button>`).join("")}</div>
+      <div id="mHero"></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div><div class="label">Percentuale di acquisto</div><div class="sub" style="margin-top:3px">Quanto paghi rispetto al valore del metallo</div></div>
+          <div class="stepper"><button onclick="setBuy((BUY||85)-1)">${ic("minus", "s")}</button><div class="val" id="mBuy"></div><button onclick="setBuy((BUY||84)+1)">${ic("plus", "s")}</button></div>
+        </div>
+        <div class="chips" style="margin:12px 0 0;padding:0">${[70, 75, 80, 85, 90].map((v) => `<button class="chip" data-v="${v}" onclick="setBuy(${v})">${v}%</button>`).join("")}<button class="chip" data-v="0" onclick="setBuy(0)">Solo valore</button></div>
+      </div>
+      <div class="sec"><h2>Prezzo al grammo</h2><span class="sub" id="mStamp"></span></div>
+      <div class="list ptable" id="mTable"></div>
+      <div class="sec"><h2>Calcola un oggetto</h2></div>
+      <div class="card">
+        <div class="calc"><div><label>Peso (grammi)</label><input id="cG" inputmode="decimal" placeholder="es. 12,5"></div><div><label>Titolo</label><select id="cP"></select></div></div>
+        <div class="cout" id="cOut"></div>
+      </div>
+      <div class="note">Valore del metallo puro dai futures COMEX/NYMEX ($/oncia) convertito al cambio euro/dollaro attuale. Non include margini, costi di fusione o IVA. Si aggiorna da solo ogni minuto.</div>`);
+    mCalcOpts(); mRender();
+    $("#cG").oninput = mCalc; $("#cP").onchange = mCalc;
+    clearInterval(mTimer);
+    mTimer = setInterval(() => { if (TAB === "metals" && !document.hidden) metals(true); else clearInterval(mTimer); }, 60000);
+  } catch (e) { fail(e); }
+}
+function mSeg() { document.querySelectorAll("#mSeg button").forEach((b) => b.classList.toggle("on", b.dataset.k === MT)); }
+function mCalcOpts() {
+  const sel = $("#cP"); if (!sel) return;
+  sel.innerHTML = PURITY[MT].map(([l, t]) => `<option value="${t}">${t}${l ? " · " + l : ""}</option>`).join("");
+  sel.value = MT === "oro" ? "750" : MT === "argento" ? "925" : String(PURITY[MT][0][1]);
+  mCalc();
+}
+function mRender() {
+  const m = MD.metals.find((x) => x.key === MT);
+  const chg = m.prev_eur_g ? (m.eur_g / m.prev_eur_g - 1) * 100 : null;
+  $("#mHero").className = MT === "oro" ? "mhero" : "mhero ag";
+  $("#mHero").innerHTML = m.eur_g == null ? `<div class="err">Prezzo di ${esc(m.name)} non disponibile ora.</div>` : `
+    <div style="display:flex;justify-content:space-between;align-items:center"><span class="label">${esc(m.name)} puro · 999</span><span class="sub"><span class="dot ${m.live ? "live" : "off"}"></span>${m.live ? "Mercato aperto" : "Mercato chiuso"}</span></div>
+    <div class="big" style="font-size:38px;margin-top:8px">${gfmt(m.eur_g)} <span style="font-size:20px;color:var(--txt2)">€/g</span></div>
+    <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge ${cls(chg)}">${pct(chg)}</span><span class="sub">oggi</span>
+      <span class="sub">· ${nf(m.eur_g * 1000, 0)} €/kg · ${nf(m.usd_oz, 2)} $/oz</span></div>`;
+  $("#mBuy").textContent = BUY ? `${nf(BUY, BUY % 1 ? 1 : 0)}%` : "—";
+  document.querySelectorAll(".chip[data-v]").forEach((c) => c.classList.toggle("on", Number(c.dataset.v) === (BUY || 0)));
+  $("#mStamp").textContent = `Aggiornato alle ${hm(MD.at)}`;
+  $("#mTable").innerHTML = m.eur_g == null ? "" : `<div class="row hd"><div class="grow">Titolo</div><div class="c">Valore</div>${BUY ? `<div class="c">Acquisto ${nf(BUY, 0)}%</div>` : ""}</div>` +
+    PURITY[MT].map(([l, t]) => { const v = m.eur_g * t / 1000; return `<div class="row">
+      <div class="grow"><div class="name" style="font-size:15px">${MT === "oro" ? l : t}</div><div class="sub">${MT === "oro" ? `${t}‰` : l || "millesimi"}</div></div>
+      <div class="c">${gfmt(v)} €</div>${BUY ? `<div class="c buy">${gfmt(v * BUY / 100)} €</div>` : ""}</div>`; }).join("");
+  mCalc();
+}
+function mCalc() {
+  const out = $("#cOut"); if (!out || !MD) return;
+  const m = MD.metals.find((x) => x.key === MT);
+  const g = parseFloat(String($("#cG").value).replace(/\./g, "").replace(",", ".")) || 0;
+  const t = Number($("#cP").value) / 1000;
+  const val = (m.eur_g || 0) * t * g;
+  out.innerHTML = `<div><span class="label">Valore metallo</span><b>${g ? nf(val, 2) + " €" : "—"}</b></div>` +
+    `<div style="${BUY ? "background:var(--warnbg)" : ""}"><span class="label" style="${BUY ? "color:var(--warn)" : ""}">${BUY ? `Offerta ${nf(BUY, 0)}%` : "Offerta"}</span><b style="${BUY ? "color:var(--warn)" : ""}">${g && BUY ? nf(val * BUY / 100, 2) + " €" : BUY ? "—" : "imposta %"}</b></div>`;
+}
+function setBuy(v) {
+  v = Math.max(0, Math.min(100, Math.round(v)));
+  BUY = v > 0 ? v : null;
+  localStorage.setItem("buy", BUY || "");
+  mRender();
+  clearTimeout(buyTimer);
+  buyTimer = setTimeout(() => api("setbuy", {}, { pct: BUY || 0 }).catch(() => {}), 600);
 }
 
 // ---------- calendar ----------
