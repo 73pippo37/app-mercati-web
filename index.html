@@ -551,7 +551,12 @@ function askAbout(code, name) { closeSheet(); FOCUS = code; show("ai"); setTimeo
 
 // ---------- start ----------
 function start() { $("#hdr").style.display = ""; $("#nav").style.display = ""; show("markets"); }
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator) {
+  // a new version takes over at once and the page reloads one time
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadController && !window.__reloaded) { window.__reloaded = true; location.reload(); } });
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((r) => r.update()).catch(() => {});
+}
 if (KEY) api("me").then(start).catch((e) => { if (e.message !== "401") start(); }); else login();
 document.addEventListener("visibilitychange", () => { if (!document.hidden && KEY && TAB !== "ai" && !$("#sheet").classList.contains("open")) show(TAB); });
 </script>
